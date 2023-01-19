@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { WebSocketClient } from '@mattermost/client';
 
@@ -13,12 +13,70 @@ const apiClient = axios.create({
   },
 });
 
-(async () => {
-  await login();
-  await initClient();
-})();
+export const App = () => {
+  const [posts, setPosts] = useState([] as { id: string; message: string }[]);
+  const [input, setInput] = useState('');
 
-export const App = () => <div>hello</div>;
+  useEffect(() => {
+    (async () => {
+      await login();
+      await initClient();
+
+      // @TODO: react-query
+      const { data } = await apiClient.get(
+        `/api/v4/channels/${channelId}/posts`,
+        {
+          params: {
+            // before: ntgthhpdojryzpb1joqs5wsrgh,
+            page: 0,
+            per_page: 30,
+            skipFetchThreads: false,
+            collapsedThreads: true,
+            collapsedThreadsExtended: false,
+          },
+        }
+      );
+
+      setPosts(data.order.reverse().map((id) => data.posts[id]));
+    })();
+  }, []);
+
+  return (
+    <div>
+      <h1>chat</h1>
+      <div>
+        <ul>
+          {posts.map((post) => (
+            <li key={post.id}>{post.message}</li>
+          ))}
+        </ul>
+      </div>
+      <input
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            apiClient.post('/api/v4/posts', {
+              file_ids: [],
+              message: input,
+              props: { disable_group_highlight: true },
+              metadata: {},
+              channel_id: channelId,
+              user_id: userId,
+              create_at: 0,
+              update_at: Date.now(),
+              reply_count: 0,
+            });
+
+            setPosts([...posts, { id: String(Date.now()), message: input }]);
+            setInput('');
+          }
+        }}
+      />
+    </div>
+  );
+};
 
 async function login() {
   if (!localStorage.auth) {
@@ -55,18 +113,4 @@ async function initClient() {
   client.addCloseListener((...args) =>
     console.log('addCloseListener', ...args)
   );
-
-  setTimeout(async () => {
-    await apiClient.post('/api/v4/posts', {
-      file_ids: [],
-      message: 'post ' + Date.now(),
-      props: { disable_group_highlight: true },
-      metadata: {},
-      channel_id: channelId,
-      user_id: userId,
-      create_at: 0,
-      update_at: Date.now(),
-      reply_count: 0,
-    });
-  }, 1000);
 }
