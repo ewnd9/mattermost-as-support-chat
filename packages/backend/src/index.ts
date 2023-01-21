@@ -1,7 +1,10 @@
 import fastify from 'fastify';
 import metricsPlugin from 'fastify-metrics';
+import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
 
 import { env } from './config';
+import { appRouter } from './routes';
+import { createContext } from './context';
 
 main()
   .catch(err => {
@@ -14,6 +17,10 @@ async function main() {
     logger: true,
   });
   await server.register(metricsPlugin, { endpoint: '/metrics' });
+  await server.register(fastifyTRPCPlugin, {
+    prefix: '/trpc',
+    trpcOptions: { router: appRouter, createContext },
+  });
 
   server.get('/', async () => {
     return 'ok\n';

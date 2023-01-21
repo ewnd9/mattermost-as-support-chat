@@ -11,8 +11,8 @@ $ yarn install
 ## Usage
 
 ```sh
-$ yarn start:dev
-$ ./scripts/start-mattermost.sh
+$ docker-compose up mattermost &
+$ yarn start:dev # http://localhost:8080
 ```
 
 ## Production

@@ -20,13 +20,13 @@ export default defineConfig({
       // },
       // Proxying websockets or socket.io: ws://localhost:5173/socket.io -> ws://localhost:5174/socket.io
 
-      '/api/v4/websocket': {
-        target: 'ws://localhost:8065',
+      '/websocket': {
+        target: 'ws://localhost:8081',
         ws: true,
         // changeOrigin: true,
       },
-      '/api/v4': {
-        target: 'http://localhost:8065',
+      '/trpc': {
+        target: 'http://localhost:8081',
         changeOrigin: true,
       },
     },
