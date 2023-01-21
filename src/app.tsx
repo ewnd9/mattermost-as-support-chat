@@ -2,10 +2,6 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { WebSocketClient } from '@mattermost/client';
 
-// TODO: get list from api
-const channelId = 'tqgnf1feqtyutpmzguxhoda9xh';
-const userId = 'qt55opr3pbnpfjakrymfjemkzc';
-
 const apiClient = axios.create({
   headers: {
     // 401 without it
@@ -14,12 +10,15 @@ const apiClient = axios.create({
 });
 
 export const App = () => {
+  const [channelId, setChannelId] = useState<string | null>(null);
   const [posts, setPosts] = useState([] as { id: string; message: string }[]);
   const [input, setInput] = useState('');
 
   useEffect(() => {
     (async () => {
-      await login();
+      const { channelId } = await login();
+      setChannelId(channelId);
+
       await initClient();
 
       // @TODO: react-query
@@ -63,7 +62,6 @@ export const App = () => {
               props: { disable_group_highlight: true },
               metadata: {},
               channel_id: channelId,
-              user_id: userId,
               create_at: 0,
               update_at: Date.now(),
               reply_count: 0,
@@ -94,6 +92,11 @@ async function login() {
       deviceId: '',
     });
   }
+
+  const { data: [team] } = await apiClient.get('/api/v4/users/me/teams');
+  const { data: [channel] } = await apiClient.get(`/api/v4/users/me/teams/${team.id}/channels`);
+
+  return { channelId: channel.id };
 }
 
 async function initClient() {
