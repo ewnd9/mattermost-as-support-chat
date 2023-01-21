@@ -4,6 +4,7 @@ import axios from 'axios';
 export const env = cleanEnv(process.env, {
   PORT: num({ default: 8081 }),
   MATTERMOST_HOST: str(),
+  MATTERMOST_WEBSOCKET: str(),
 });
 
 export const mattermostApi = axios.create({

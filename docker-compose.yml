@@ -19,6 +19,7 @@ services:
     environment:
       PORT: "8080"
       MATTERMOST_HOST: "http://mattermost:8065"
+      MATTERMOST_WEBSOCKET: "ws://mattermost:8065/api/v4/websocket"
     links:
       - "mattermost"
     ports:

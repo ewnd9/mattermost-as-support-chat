@@ -7,8 +7,6 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@mattermost/client": "^7.4.0",
-    "@mattermost/types": "^7.4.0",
     "@tanstack/react-query": "^4.22.0",
     "@trpc/client": "^10.9.0",
     "@trpc/react-query": "^10.9.0",

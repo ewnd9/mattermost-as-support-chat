@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { WebSocketClient } from '@mattermost/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { trpc } from './trpc';
-import { useQueryClient } from '@tanstack/react-query';
 
 export const App = () => {
   const getMyProfileQuery = trpc.getMyProfile.useQuery();
@@ -77,34 +76,16 @@ function useWebsocketClient() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const client = new WebSocketClient();
-    client.initialize(`ws://${location.host}/websocket`);
-
-    client.addMessageListener((...args) => {
-      console.log('addMessageListener', ...args);
-
-      const data: any = args[0];
-      if (data.event === 'posted') {
-        const newPost = JSON.parse(data.data.post);
-        // @TODO: lacks mapping
-        console.log({ newPost });
-
+    const client = new WebSocket(`ws://${location.host}/websocket`);
+    client.onmessage = (event) => {
+      const data: any = JSON.parse(event.data);
+      if (data.type === 'new-post') {
         queryClient.setQueriesData(trpc.getChatHistory.getQueryKey(), (old) => {
-          return [...(old as any[]), newPost];
+          return [...(old as any[]), data.post];
         });
+      } else {
+        console.log('unknown message', data);
       }
-    });
-    client.addFirstConnectListener((...args) =>
-      console.log('addFirstConnectListener', ...args)
-    );
-    client.addReconnectListener((...args) =>
-      console.log('addReconnectListener', ...args)
-    );
-    client.addMissedMessageListener((...args) =>
-      console.log('addMissedMessageListener', ...args)
-    );
-    client.addCloseListener((...args) =>
-      console.log('addCloseListener', ...args)
-    );
+    }
   }, []);
 }
