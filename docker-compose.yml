@@ -11,11 +11,21 @@ services:
     ports:
       - "3306:3306"
       - "8065:8065"
+  backend:
+    build:
+      context: ./
+      dockerfile: ./packages/backend/Dockerfile
+    restart: unless-stopped
+    links:
+      - "mattermost"
+    ports:
+      - "8081:8080"
   nginx:
     build:
       context: ./packages/frontend
     restart: unless-stopped
     links:
+      - "backend"
       - "mattermost"
     ports:
       - "8080:8080"
