@@ -31,6 +31,8 @@ export const App = () => {
 const Loader = () => <div>Loading...</div>;
 
 const Chat = () => {
+  useWebsocketClient();
+
   const queryClient = useQueryClient();
   const getChatHistoryQuery = trpc.getChatHistory.useQuery();
   const postMessageMutation = trpc.postMessage.useMutation({
@@ -71,23 +73,38 @@ const Chat = () => {
   );
 };
 
-// async function initClient() {
-//   const client = new WebSocketClient();
-//   client.initialize(`ws://${location.host}/api/v4/websocket`);
+function useWebsocketClient() {
+  const queryClient = useQueryClient();
 
-//   client.addMessageListener((...args) =>
-//     console.log('addMessageListener', ...args)
-//   );
-//   client.addFirstConnectListener((...args) =>
-//     console.log('addFirstConnectListener', ...args)
-//   );
-//   client.addReconnectListener((...args) =>
-//     console.log('addReconnectListener', ...args)
-//   );
-//   client.addMissedMessageListener((...args) =>
-//     console.log('addMissedMessageListener', ...args)
-//   );
-//   client.addCloseListener((...args) =>
-//     console.log('addCloseListener', ...args)
-//   );
-// }
+  useEffect(() => {
+    const client = new WebSocketClient();
+    client.initialize(`ws://${location.host}/websocket`);
+
+    client.addMessageListener((...args) => {
+      console.log('addMessageListener', ...args);
+
+      const data: any = args[0];
+      if (data.event === 'posted') {
+        const newPost = JSON.parse(data.data.post);
+        // @TODO: lacks mapping
+        console.log({ newPost });
+
+        queryClient.setQueriesData(trpc.getChatHistory.getQueryKey(), (old) => {
+          return [...(old as any[]), newPost];
+        });
+      }
+    });
+    client.addFirstConnectListener((...args) =>
+      console.log('addFirstConnectListener', ...args)
+    );
+    client.addReconnectListener((...args) =>
+      console.log('addReconnectListener', ...args)
+    );
+    client.addMissedMessageListener((...args) =>
+      console.log('addMissedMessageListener', ...args)
+    );
+    client.addCloseListener((...args) =>
+      console.log('addCloseListener', ...args)
+    );
+  }, []);
+}

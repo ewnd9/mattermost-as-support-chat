@@ -16,6 +16,9 @@ services:
       context: ./
       dockerfile: ./packages/backend/Dockerfile
     restart: unless-stopped
+    environment:
+      PORT: "8080"
+      MATTERMOST_HOST: "http://mattermost:8065"
     links:
       - "mattermost"
     ports:
