@@ -1,62 +1,8 @@
-import { initTRPC, TRPCError } from '@trpc/server';
 import { z } from 'zod';
+
+import { proxyProcedure } from './proxy-middleware';
+import { t } from './trpc';
 import { mattermostApi } from '../config';
-import { Context } from './context';
-
-export const t = initTRPC.context<Context>().create();
-
-interface MattermostUser {
-  id: string;
-  teamId: string;
-  channelId: string;
-  cookie: string;
-}
-
-const usersMap: Record<string, MattermostUser> = {};
-
-const proxyMiddleware = t.middleware(async ({ next, ctx }) => {
-  const cookie = ctx.req.headers.cookie;
-  if (!cookie) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
-  }
-
-  // @TODO: replace with server session
-  if (!usersMap[cookie]) {
-    const { data: user } = await mattermostApi.get('/api/v4/users/me', {
-      headers: {
-        cookie,
-      }
-    });
-
-    const { data: [team] } = await mattermostApi.get('/api/v4/users/me/teams', {
-      headers: {
-        cookie,
-      }
-    });
-
-    const { data: [channel] } = await mattermostApi.get(`/api/v4/users/me/teams/${team.id}/channels`, {
-      headers: {
-        cookie,
-      }
-    });
-
-    const mattermostUser: MattermostUser = {
-      id: user.id,
-      teamId: team.id,
-      channelId: channel.id,
-      cookie,
-    };
-
-    usersMap[cookie] = mattermostUser;
-  }
-
-  return next({
-    ctx: {
-      user: usersMap[cookie],
-    },
-  });
-});
-export const proxyProcedure = t.procedure.use(proxyMiddleware);
 
 export const appRouter = t.router({
   getMyProfile: proxyProcedure.query(async ({ ctx }) => {
