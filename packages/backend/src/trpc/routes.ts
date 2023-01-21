@@ -1,6 +1,6 @@
 import { initTRPC, TRPCError } from '@trpc/server';
 import { z } from 'zod';
-import { mattermostApi } from './config';
+import { mattermostApi } from '../config';
 import { Context } from './context';
 
 export const t = initTRPC.context<Context>().create();

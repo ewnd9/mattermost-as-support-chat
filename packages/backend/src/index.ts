@@ -5,8 +5,8 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 import expressMiddlewareSupportPlugin from '@fastify/express';
 
 import { env } from './config';
-import { appRouter } from './routes';
-import { createContext } from './context';
+import { appRouter } from './trpc/routes';
+import { createContext } from './trpc/context';
 
 main()
   .catch(err => {
