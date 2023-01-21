@@ -79,7 +79,11 @@ export const App = () => {
 };
 
 async function login() {
-  if (!localStorage.auth) {
+  try {
+    await apiClient.get('/api/v4/users/me');
+  } catch (err) {
+    console.error(err);
+
     const email = window.prompt('email');
     const password = window.prompt('password');
 
@@ -89,8 +93,6 @@ async function login() {
       token: '',
       deviceId: '',
     });
-
-    localStorage.auth = 'true';
   }
 }
 

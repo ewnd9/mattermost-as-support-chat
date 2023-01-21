@@ -1,0 +1,20 @@
+version: '2'
+services:
+  mattermost:
+    image: mattermost/mattermost-preview@sha256:bf3385d61c18b54e29535ed9265a4a9f7ac667b70a89b952c22296d166b66f9b
+    restart: always
+    volumes:
+      - $PWD/scripts/config.json:/mm/mattermost/config/config_docker.json
+      - $PWD/data/mattermost:/mm/mattermost-data
+      # - $PWD/data/mysql:/var/lib/mysql
+      - /var/lib/mysql
+    ports:
+      - "3306:3306"
+      - "8065:8065"
+  nginx:
+    build: ./
+    restart: unless-stopped
+    links:
+      - "mattermost"
+    ports:
+      - "8080:8080"
