@@ -12,7 +12,8 @@ services:
       - "3306:3306"
       - "8065:8065"
   nginx:
-    build: ./
+    build:
+      context: ./packages/frontend
     restart: unless-stopped
     links:
       - "mattermost"
